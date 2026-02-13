@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: vignaharta-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 4000
+      - key: DB_PATH
+        value: ./data/app.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URLS
+        sync: false
