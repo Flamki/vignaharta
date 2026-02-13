@@ -100,7 +100,6 @@ const initSqlite = async () => {
       db.all(
         "SELECT id, name, phone, email, source, notes, created_at FROM leads ORDER BY id DESC LIMIT 500"
       )
-    }
   };
 };
 
