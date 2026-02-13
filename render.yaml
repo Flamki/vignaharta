@@ -1,6 +1,7 @@
 services:
   - type: web
     name: vignaharta-backend
+    plan: free
     runtime: node
     rootDir: backend
     buildCommand: npm install
