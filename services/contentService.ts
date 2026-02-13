@@ -58,3 +58,21 @@ export const verifyToken = async (token: string): Promise<boolean> => {
     return false;
   }
 };
+
+export interface LeadPayload {
+  name: string;
+  phone: string;
+  email?: string;
+  source: 'enquire_now' | 'price_sheet' | 'brochure_download';
+  notes?: string;
+}
+
+export const submitLead = async (payload: LeadPayload): Promise<void> => {
+  await requestJson<{ ok: boolean }>('/api/leads', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+};

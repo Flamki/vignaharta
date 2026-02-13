@@ -186,6 +186,15 @@ vignaharta/
 - `content_json` (TEXT, complete CMS JSON)
 - `updated_at` (TEXT datetime)
 
+### Table: `leads`
+- `id` (PK)
+- `name`
+- `phone`
+- `email`
+- `source` (`enquire_now`, `price_sheet`, `brochure_download`)
+- `notes`
+- `created_at`
+
 ### Why JSON in one row?
 - Easy for assignment-level CMS
 - Entire content model can be updated atomically
@@ -240,6 +249,12 @@ vignaharta/
       <td><code>/api/content</code></td>
       <td>Save updated content</td>
       <td>Yes</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td><code>/api/leads</code></td>
+      <td>Capture website enquiry/download leads</td>
+      <td>No</td>
     </tr>
   </tbody>
 </table>

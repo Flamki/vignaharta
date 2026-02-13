@@ -128,6 +128,35 @@ app.put("/api/content", authRequired, async (req, res) => {
   res.json({ ok: true });
 });
 
+app.post("/api/leads", async (req, res) => {
+  const { name, phone, email, source, notes } = req.body || {};
+
+  if (!name || !phone || !source) {
+    res.status(400).json({ message: "name, phone and source are required" });
+    return;
+  }
+
+  if (!/^\d{10}$/.test(String(phone))) {
+    res.status(400).json({ message: "Phone must be 10 digits" });
+    return;
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+    res.status(400).json({ message: "Invalid email format" });
+    return;
+  }
+
+  await db.createLead({
+    name: String(name).trim(),
+    phone: String(phone).trim(),
+    email: email ? String(email).trim() : "",
+    source: String(source).trim(),
+    notes: notes ? String(notes).trim() : ""
+  });
+
+  res.status(201).json({ ok: true });
+});
+
 app.listen(port, () => {
   console.log(`Backend running on http://localhost:${port}`);
 });

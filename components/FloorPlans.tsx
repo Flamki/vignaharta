@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { X, Check, Download } from 'lucide-react';
+import { submitLead } from '../services/contentService';
 
 type PlanType = '1bhk' | '2bhk' | '3bhk';
 
@@ -63,6 +64,7 @@ export const FloorPlans: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PlanType>('1bhk');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [submitError, setSubmitError] = useState('');
   
   // Form State
   const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
@@ -84,7 +86,7 @@ export const FloorPlans: React.FC = () => {
       }
   };
 
-  const handleRequestSubmit = (e: React.FormEvent) => {
+  const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Strict 10-digit validation
@@ -93,32 +95,41 @@ export const FloorPlans: React.FC = () => {
         return;
     }
     
+    setSubmitError('');
     setFormStatus('submitting');
-    
-    // Simulate API call/processing
-    setTimeout(() => {
-        setFormStatus('success');
-        
-        // Trigger Download Logic
-        const content = `VIGNAHARTA INFINITY - PRICE SHEET\n\n---------------------------------\n\nPlan Type: ${currentPlan.label}\nConfiguration: ${activeTab.toUpperCase()}\nCarpet Area: ${currentPlan.carpetArea} sq.ft\nStarting Price: ${currentPlan.price}\n\n---------------------------------\n\nThank you for your interest, ${formData.name}!\nOur sales team will contact you shortly at ${formData.phone}.`;
-        
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Vignaharta_Price_Sheet_${activeTab.toUpperCase()}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
 
-        setTimeout(() => {
-            setIsModalOpen(false);
-            setFormStatus('idle');
-            setFormData({ name: '', phone: '', email: '' });
-            setPhoneError('');
-        }, 3000);
-    }, 1500);
+    try {
+      await submitLead({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        source: 'price_sheet',
+        notes: `Plan:${activeTab.toUpperCase()}`
+      });
+
+      setFormStatus('success');
+
+      const content = `VIGNAHARTA INFINITY - PRICE SHEET\n\n---------------------------------\n\nPlan Type: ${currentPlan.label}\nConfiguration: ${activeTab.toUpperCase()}\nCarpet Area: ${currentPlan.carpetArea} sq.ft\nStarting Price: ${currentPlan.price}\n\n---------------------------------\n\nThank you for your interest, ${formData.name}!\nOur sales team will contact you shortly at ${formData.phone}.`;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Vignaharta_Price_Sheet_${activeTab.toUpperCase()}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setFormStatus('idle');
+        setFormData({ name: '', phone: '', email: '' });
+        setPhoneError('');
+      }, 3000);
+    } catch {
+      setFormStatus('idle');
+      setSubmitError('Could not submit details right now. Please try again.');
+    }
   };
 
   return (
@@ -370,6 +381,7 @@ export const FloorPlans: React.FC = () => {
                             <p className="text-[10px] text-gray-400 text-center mt-4 leading-tight">
                                 By submitting, you agree to our privacy policy. Your data is secure with us.
                             </p>
+                            {submitError && <p className="text-red-500 text-xs text-center">{submitError}</p>}
                         </form>
                     )}
                 </div>

@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Facebook, Instagram, Twitter, Linkedin, Phone, Mail, MapPin } from 'lucide-react';
+import { submitLead } from '../services/contentService';
 
 const LogoSVG = () => (
   <svg viewBox="0 0 100 100" className="w-10 h-10 fill-current text-brand-gold">
@@ -11,11 +12,51 @@ const LogoSVG = () => (
 );
 
 export const Footer: React.FC = () => {
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
+  const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
   const handleScroll = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'phone') {
+      setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, '') }));
+      return;
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEnquireSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setSubmitState('error');
+      setErrorMessage('Please enter a valid 10-digit phone number.');
+      return;
+    }
+
+    setSubmitState('submitting');
+    try {
+      await submitLead({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        source: 'enquire_now',
+        notes: formData.message.trim()
+      });
+      setSubmitState('success');
+      setFormData({ name: '', phone: '', email: '', message: '' });
+    } catch {
+      setSubmitState('error');
+      setErrorMessage('Could not submit enquiry. Please try again.');
     }
   };
 
@@ -88,12 +129,51 @@ export const Footer: React.FC = () => {
 
           <div>
              <h4 className="text-lg font-display mb-6 md:mb-8 text-white">Enquire Now</h4>
-             <form className="space-y-4">
-                 <input type="text" placeholder="Name" className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors" />
-                 <input type="text" placeholder="Phone" className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors" />
-                 <button className="w-full bg-white text-black font-bold py-4 mt-4 text-xs uppercase tracking-widest hover:bg-brand-gold transition-colors">
-                     Request Callback
+             <form className="space-y-4" onSubmit={handleEnquireSubmit}>
+                 <input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                    placeholder="Name"
+                    className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors"
+                 />
+                 <input
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    type="text"
+                    required
+                    maxLength={10}
+                    placeholder="Phone"
+                    className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors"
+                 />
+                 <input
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    type="email"
+                    placeholder="Email (Optional)"
+                    className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors"
+                 />
+                 <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    rows={2}
+                    placeholder="Write your message"
+                    className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors resize-none"
+                 />
+                 <button
+                    type="submit"
+                    disabled={submitState === 'submitting'}
+                    className="w-full bg-white text-black font-bold py-4 mt-4 text-xs uppercase tracking-widest hover:bg-brand-gold transition-colors disabled:opacity-70"
+                 >
+                    {submitState === 'submitting' ? 'Submitting...' : submitState === 'success' ? 'Request Submitted' : 'Request Callback'}
                  </button>
+                 {submitState === 'error' && <p className="text-red-400 text-xs">{errorMessage}</p>}
+                 {submitState === 'success' && <p className="text-green-400 text-xs">Thanks! Our team will contact you shortly.</p>}
              </form>
           </div>
 

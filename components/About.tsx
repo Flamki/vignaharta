@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { AboutSection } from '../types';
 import { Download, X, Check } from 'lucide-react';
+import { submitLead } from '../services/contentService';
 
 interface AboutProps {
   content: AboutSection;
@@ -10,6 +11,7 @@ interface AboutProps {
 export const About: React.FC<AboutProps> = ({ content }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [submitError, setSubmitError] = useState('');
   
   // Form State
   const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
@@ -29,7 +31,7 @@ export const About: React.FC<AboutProps> = ({ content }) => {
       }
   };
 
-  const handleBrochureSubmit = (e: React.FormEvent) => {
+  const handleBrochureSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Strict 10-digit validation
@@ -38,32 +40,40 @@ export const About: React.FC<AboutProps> = ({ content }) => {
         return;
     }
     
+    setSubmitError('');
     setFormStatus('submitting');
-    
-    // Simulate API call/processing
-    setTimeout(() => {
-        setFormStatus('success');
-        
-        // Trigger Download Logic
-        const brochureContent = `VIGNAHARTA INFINITY - OFFICIAL BROCHURE\n\n---------------------------------\n\nProject: ${content.title}\n\nDescription:\n${content.description}\n\nHighlights:\n- Prime Avenue Location\n- Expansive Sun Decks\n- Neo-Classical Design\n- 3-Tier Security\n\n---------------------------------\n\nThank you for downloading, ${formData.name}!\nFor more details, visit our sales office.`;
-        
-        const blob = new Blob([brochureContent], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Vignaharta_Infinity_Brochure.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
 
-        setTimeout(() => {
-            setIsModalOpen(false);
-            setFormStatus('idle');
-            setFormData({ name: '', phone: '', email: '' });
-            setPhoneError('');
-        }, 3000);
-    }, 1500);
+    try {
+      await submitLead({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        source: 'brochure_download'
+      });
+
+      setFormStatus('success');
+
+      const brochureContent = `VIGNAHARTA INFINITY - OFFICIAL BROCHURE\n\n---------------------------------\n\nProject: ${content.title}\n\nDescription:\n${content.description}\n\nHighlights:\n- Prime Avenue Location\n- Expansive Sun Decks\n- Neo-Classical Design\n- 3-Tier Security\n\n---------------------------------\n\nThank you for downloading, ${formData.name}!\nFor more details, visit our sales office.`;
+      const blob = new Blob([brochureContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Vignaharta_Infinity_Brochure.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setFormStatus('idle');
+        setFormData({ name: '', phone: '', email: '' });
+        setPhoneError('');
+      }, 3000);
+    } catch {
+      setFormStatus('idle');
+      setSubmitError('Could not submit details right now. Please try again.');
+    }
   };
 
   return (
@@ -229,6 +239,7 @@ export const About: React.FC<AboutProps> = ({ content }) => {
                             <p className="text-[10px] text-gray-400 text-center mt-4 leading-tight">
                                 By submitting, you agree to receive project updates.
                             </p>
+                            {submitError && <p className="text-red-500 text-xs text-center">{submitError}</p>}
                         </form>
                     )}
                 </div>

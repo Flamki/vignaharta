@@ -37,6 +37,16 @@ const initSqlite = async () => {
       content_json TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS leads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT,
+      source TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   const existingAdmin = await db.get(
@@ -75,6 +85,16 @@ const initSqlite = async () => {
         "UPDATE app_content SET content_json = ?, updated_at = datetime('now') WHERE id = 1",
         JSON.stringify(content)
       );
+    },
+    createLead: async (lead) => {
+      await db.run(
+        "INSERT INTO leads (name, phone, email, source, notes, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
+        lead.name,
+        lead.phone,
+        lead.email || null,
+        lead.source,
+        lead.notes || null
+      );
     }
   };
 };
@@ -104,6 +124,16 @@ const initPostgres = async () => {
       id INTEGER PRIMARY KEY CHECK (id = 1),
       content_json JSONB NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS leads (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT,
+      source TEXT NOT NULL,
+      notes TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
 
@@ -155,6 +185,12 @@ const initPostgres = async () => {
       await pool.query(
         "UPDATE app_content SET content_json = $1::jsonb, updated_at = NOW() WHERE id = 1",
         [JSON.stringify(content)]
+      );
+    },
+    createLead: async (lead) => {
+      await pool.query(
+        "INSERT INTO leads (name, phone, email, source, notes, created_at) VALUES ($1, $2, $3, $4, $5, NOW())",
+        [lead.name, lead.phone, lead.email || null, lead.source, lead.notes || null]
       );
     }
   };
