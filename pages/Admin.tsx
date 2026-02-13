@@ -24,6 +24,14 @@ export const Admin: React.FC = () => {
   const [content, setContent] = useState<AppContent | null>(null);
   const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'amenities' | 'connectivity' | 'developer' | 'faq'>('hero');
   const [notification, setNotification] = useState('');
+  const tabOptions: Array<{ id: typeof activeTab; label: string }> = [
+    { id: 'hero', label: 'Hero Section' },
+    { id: 'about', label: 'Project Overview' },
+    { id: 'amenities', label: 'Amenities' },
+    { id: 'connectivity', label: 'Connectivity' },
+    { id: 'developer', label: 'Developer Info' },
+    { id: 'faq', label: 'FAQ Manager' }
+  ];
   const adminTextFix = `
     .admin-panel input,
     .admin-panel textarea,
@@ -290,7 +298,7 @@ export const Admin: React.FC = () => {
              <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover" alt="Background" />
         </div>
 
-        <div className="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border border-white/20">
+        <div className="bg-white p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border border-white/20 mx-4">
           <div className="flex justify-center mb-8">
              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner">
                 <Lock size={32} />
@@ -355,18 +363,18 @@ export const Admin: React.FC = () => {
     <div className="admin-panel min-h-screen bg-gray-100 flex flex-col font-sans">
       <style>{adminTextFix}</style>
       {/* Top Bar */}
-      <header className="bg-white shadow-sm h-16 flex items-center justify-between px-8 fixed w-full z-20">
+      <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 md:px-8 fixed w-full z-20">
         <div className="flex items-center">
              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold mr-3">V</div>
-             <span className="font-display font-bold text-xl text-gray-800">Vignaharta <span className="text-gray-400 font-normal">Panel</span></span>
+             <span className="font-display font-bold text-lg md:text-xl text-gray-800">Vignaharta <span className="text-gray-400 font-normal hidden sm:inline">Panel</span></span>
         </div>
-        <div className="flex items-center gap-4">
-             <a href="#/" target="_blank" className="text-gray-500 hover:text-green-600 text-sm font-medium flex items-center">
-                 <LayoutDashboard size={16} className="mr-2"/> View Live Site
+        <div className="flex items-center gap-2 md:gap-4">
+             <a href="#/" target="_blank" className="text-gray-500 hover:text-green-600 text-xs md:text-sm font-medium flex items-center">
+                 <LayoutDashboard size={16} className="md:mr-2"/> <span className="hidden md:inline">View Live Site</span>
              </a>
-             <div className="h-6 w-px bg-gray-200"></div>
-             <button onClick={handleLogout} className="text-red-500 hover:text-red-700 text-sm font-bold uppercase tracking-wider flex items-center">
-                 <LogOut size={16} className="mr-2"/> Logout
+             <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
+             <button onClick={handleLogout} className="text-red-500 hover:text-red-700 text-xs md:text-sm font-bold uppercase tracking-wider flex items-center">
+                 <LogOut size={16} className="md:mr-2"/> <span className="hidden md:inline">Logout</span>
              </button>
         </div>
       </header>
@@ -388,8 +396,25 @@ export const Admin: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-8 bg-gray-50/50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/50">
             <div className="max-w-5xl mx-auto">
+                {/* Mobile Module Switcher */}
+                <div className="md:hidden mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">
+                      Content Module
+                    </label>
+                    <select
+                      className="w-full p-3 border border-gray-200 rounded-lg bg-white"
+                      value={activeTab}
+                      onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
+                    >
+                      {tabOptions.map((tab) => (
+                        <option key={tab.id} value={tab.id}>
+                          {tab.label}
+                        </option>
+                      ))}
+                    </select>
+                </div>
                 
                 {/* Header for Content Area */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -399,7 +424,7 @@ export const Admin: React.FC = () => {
                     </div>
                     <button 
                         onClick={handleSave}
-                        className="flex items-center bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 shadow-lg shadow-green-600/20 transition-all active:scale-95 font-bold tracking-wide"
+                        className="w-full md:w-auto flex items-center justify-center bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 shadow-lg shadow-green-600/20 transition-all active:scale-95 font-bold tracking-wide"
                     >
                         <Save size={18} className="mr-2" /> Save Changes
                     </button>
