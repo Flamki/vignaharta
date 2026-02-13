@@ -4,7 +4,7 @@
   <p>
     <img alt="Frontend" src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?logo=react&logoColor=white" />
     <img alt="Backend" src="https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-000000?logo=express&logoColor=white" />
-    <img alt="Database" src="https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white" />
+    <img alt="Database" src="https://img.shields.io/badge/Database-PostgreSQL%20(Prod)%20%2B%20SQLite%20(Local)-336791?logo=postgresql&logoColor=white" />
     <img alt="Auth" src="https://img.shields.io/badge/Auth-Credential%20Login%20%2B%20JWT-6DB33F" />
   </p>
 </div>
@@ -18,12 +18,12 @@ This project is a complete full-stack implementation of the assignment:
 - Exact-style **real-estate landing website**
 - Functional **admin panel** for dynamic text updates
 - **Backend API** for authentication and content management
-- **SQLite database** for persistence
+- **PostgreSQL (production)** and **SQLite (local fallback)**
 - Ready for split deployment:
   - Frontend on **Vercel**
   - Backend on **Render/Railway/Cyclic**
 
-The website content shown on the home page is fetched from backend APIs, and admin edits are stored in SQLite.
+The website content shown on the home page is fetched from backend APIs. Admin edits persist in PostgreSQL (if `DATABASE_URL` is set) or SQLite fallback.
 
 ---
 
@@ -51,7 +51,7 @@ The website content shown on the home page is fetched from backend APIs, and adm
     <tr>
       <td>Database integration</td>
       <td>Done</td>
-      <td>SQLite DB at <code>backend/data/app.db</code></td>
+      <td>PostgreSQL in production, SQLite fallback in local/dev</td>
     </tr>
     <tr>
       <td>Admin login (fixed credentials)</td>
@@ -270,9 +270,15 @@ VITE_API_URL=http://localhost:4000
 ```env
 PORT=4000
 DB_PATH=./data/app.db
+DATABASE_URL=
+PGSSLMODE=require
 JWT_SECRET=dev-secret-change-in-production
 FRONTEND_URLS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173
 ```
+
+DB selection logic:
+- If `DATABASE_URL` is present -> backend uses PostgreSQL.
+- If `DATABASE_URL` is empty -> backend uses SQLite at `DB_PATH`.
 
 ---
 
@@ -356,9 +362,13 @@ Use `backend/` as the service root.
 
 ### Environment Variables
 - `PORT=4000` (or platform-provided)
-- `DB_PATH=./data/app.db`
+- `DATABASE_URL=<Render Postgres External Database URL>`
+- `PGSSLMODE=require`
 - `JWT_SECRET=<strong-random-secret>`
 - `FRONTEND_URLS=https://<your-vercel-domain>`
+
+Optional fallback:
+- `DB_PATH=./data/app.db` (used only when `DATABASE_URL` is not set)
 
 ### Output
 - Get backend live URL, example:
@@ -402,6 +412,7 @@ Use repository root as project root.
 - Image CMS upload/edit is intentionally not implemented (assignment says static images are acceptable)
 - No role-based multi-user admin (single fixed admin as required)
 - No advanced editor/versioning (not required in assignment)
+- If deployed on Render free web service with SQLite file storage (`./data/app.db`), data can be ephemeral across redeploys/restarts. This is acceptable for assignment demo purposes; managed DB is recommended for production persistence.
 
 ---
 

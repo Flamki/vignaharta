@@ -13,6 +13,10 @@ services:
         value: 4000
       - key: DB_PATH
         value: ./data/app.db
+      - key: DATABASE_URL
+        sync: false
+      - key: PGSSLMODE
+        value: require
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URLS

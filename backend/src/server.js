@@ -67,7 +67,7 @@ const authRequired = (req, res, next) => {
 };
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, service: "vignaharta-backend" });
+  res.json({ ok: true, service: "vignaharta-backend", database: db.driver });
 });
 
 app.get("/", (req, res) => {
@@ -85,10 +85,7 @@ app.post("/api/auth/login", async (req, res) => {
     return;
   }
 
-  const user = await db.get(
-    "SELECT email, password_hash FROM admin_users WHERE email = ?",
-    email
-  );
+  const user = await db.getUserByEmail(email);
 
   if (!user) {
     res.status(401).json({ message: "Invalid credentials" });
@@ -110,13 +107,13 @@ app.get("/api/auth/verify", authRequired, (req, res) => {
 });
 
 app.get("/api/content", async (req, res) => {
-  const row = await db.get("SELECT content_json FROM app_content WHERE id = 1");
+  const row = await db.getContent();
   if (!row) {
     res.status(500).json({ message: "Content not initialized" });
     return;
   }
 
-  res.json(JSON.parse(row.content_json));
+  res.json(row.content);
 });
 
 app.put("/api/content", authRequired, async (req, res) => {
@@ -126,10 +123,7 @@ app.put("/api/content", authRequired, async (req, res) => {
     return;
   }
 
-  await db.run(
-    "UPDATE app_content SET content_json = ?, updated_at = datetime('now') WHERE id = 1",
-    JSON.stringify(content)
-  );
+  await db.saveContent(content);
 
   res.json({ ok: true });
 });

@@ -2,13 +2,16 @@ import fs from "fs";
 import path from "path";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import { defaultContent } from "./defaultContent.js";
 
 const DEFAULT_EMAIL = "admin@gmail.com";
 const DEFAULT_PASSWORD = "1234";
 
-export const initDb = async () => {
+const nowIso = () => new Date().toISOString();
+
+const initSqlite = async () => {
   const dbPath = process.env.DB_PATH || "./data/app.db";
   const resolvedPath = path.resolve(process.cwd(), dbPath);
   const dbDir = path.dirname(resolvedPath);
@@ -57,5 +60,109 @@ export const initDb = async () => {
     );
   }
 
-  return db;
+  return {
+    driver: "sqlite",
+    getUserByEmail: async (email) =>
+      db.get("SELECT email, password_hash FROM admin_users WHERE email = ?", email),
+    getContent: async () => {
+      const row = await db.get("SELECT content_json, updated_at FROM app_content WHERE id = 1");
+      return row
+        ? { content: JSON.parse(row.content_json), updatedAt: row.updated_at }
+        : null;
+    },
+    saveContent: async (content) => {
+      await db.run(
+        "UPDATE app_content SET content_json = ?, updated_at = datetime('now') WHERE id = 1",
+        JSON.stringify(content)
+      );
+    }
+  };
+};
+
+const buildPgPool = () => {
+  const connectionString = process.env.DATABASE_URL;
+  const sslRequired = (process.env.PGSSLMODE || "").toLowerCase() === "require";
+  const ssl =
+    sslRequired || (connectionString && connectionString.includes("render.com"))
+      ? { rejectUnauthorized: false }
+      : undefined;
+
+  return new Pool({ connectionString, ssl });
+};
+
+const initPostgres = async () => {
+  const pool = buildPgPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS app_content (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      content_json JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  const existingAdmin = await pool.query(
+    "SELECT id FROM admin_users WHERE email = $1",
+    [DEFAULT_EMAIL]
+  );
+  if (existingAdmin.rowCount === 0) {
+    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+    await pool.query(
+      "INSERT INTO admin_users (email, password_hash) VALUES ($1, $2)",
+      [DEFAULT_EMAIL, passwordHash]
+    );
+  }
+
+  const existingContent = await pool.query("SELECT id FROM app_content WHERE id = 1");
+  if (existingContent.rowCount === 0) {
+    await pool.query(
+      "INSERT INTO app_content (id, content_json, updated_at) VALUES (1, $1::jsonb, NOW())",
+      [JSON.stringify(defaultContent)]
+    );
+  }
+
+  return {
+    driver: "postgres",
+    getUserByEmail: async (email) => {
+      const result = await pool.query(
+        "SELECT email, password_hash FROM admin_users WHERE email = $1",
+        [email]
+      );
+      return result.rows[0] || null;
+    },
+    getContent: async () => {
+      const result = await pool.query(
+        "SELECT content_json, updated_at FROM app_content WHERE id = 1"
+      );
+      if (result.rowCount === 0) return null;
+
+      const row = result.rows[0];
+      return {
+        content:
+          typeof row.content_json === "string"
+            ? JSON.parse(row.content_json)
+            : row.content_json,
+        updatedAt: row.updated_at || nowIso()
+      };
+    },
+    saveContent: async (content) => {
+      await pool.query(
+        "UPDATE app_content SET content_json = $1::jsonb, updated_at = NOW() WHERE id = 1",
+        [JSON.stringify(content)]
+      );
+    }
+  };
+};
+
+export const initDb = async () => {
+  if (process.env.DATABASE_URL) {
+    return initPostgres();
+  }
+  return initSqlite();
 };
