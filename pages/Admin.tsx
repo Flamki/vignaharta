@@ -366,7 +366,6 @@ export const Admin: React.FC = () => {
                 className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@gmail.com"
               />
             </div>
             <div className="space-y-2">
@@ -376,7 +375,6 @@ export const Admin: React.FC = () => {
                 className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••"
               />
             </div>
             {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center font-medium">{error}</div>}
