@@ -9,6 +9,7 @@ interface AboutProps {
 }
 
 export const About: React.FC<AboutProps> = ({ content }) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [submitError, setSubmitError] = useState('');
@@ -16,6 +17,7 @@ export const About: React.FC<AboutProps> = ({ content }) => {
   // Form State
   const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
   const [phoneError, setPhoneError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -26,6 +28,9 @@ export const About: React.FC<AboutProps> = ({ content }) => {
           setFormData(prev => ({ ...prev, [name]: numericValue }));
           
           if (phoneError) setPhoneError('');
+      } else if (name === 'email') {
+          setFormData(prev => ({ ...prev, [name]: value }));
+          if (emailError) setEmailError('');
       } else {
           setFormData(prev => ({ ...prev, [name]: value }));
       }
@@ -37,6 +42,11 @@ export const About: React.FC<AboutProps> = ({ content }) => {
     // Strict 10-digit validation
     if (!/^\d{10}$/.test(formData.phone)) {
         setPhoneError('Please enter a valid 10-digit mobile number.');
+        return;
+    }
+
+    if (!emailRegex.test(formData.email.trim())) {
+        setEmailError('Please enter a valid email address.');
         return;
     }
     
@@ -69,6 +79,7 @@ export const About: React.FC<AboutProps> = ({ content }) => {
         setFormStatus('idle');
         setFormData({ name: '', phone: '', email: '' });
         setPhoneError('');
+        setEmailError('');
       }, 3000);
     } catch {
       setFormStatus('idle');
@@ -202,6 +213,8 @@ export const About: React.FC<AboutProps> = ({ content }) => {
                                         onChange={handleInputChange}
                                         required 
                                         type="tel" 
+                                        inputMode="numeric"
+                                        pattern="\d{10}"
                                         maxLength={10}
                                         className={`w-full bg-gray-50 border rounded p-3 pl-12 text-sm focus:bg-white outline-none transition-colors text-gray-900 ${phoneError ? 'border-red-500' : 'border-gray-200 focus:border-brand-gold'}`} 
                                         placeholder="9876543210" 
@@ -211,15 +224,16 @@ export const About: React.FC<AboutProps> = ({ content }) => {
                             </div>
                             <div>
                                 <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1">Email Address</label>
-                                <input 
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    required 
-                                    type="email" 
+                                    <input 
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        required 
+                                        type="email" 
                                     className="w-full bg-gray-50 border border-gray-200 rounded p-3 text-sm focus:border-brand-gold focus:bg-white outline-none transition-colors text-gray-900" 
-                                    placeholder="john@example.com" 
-                                />
+                                        placeholder="john@example.com" 
+                                    />
+                                    {emailError && <p className="text-red-500 text-[10px] mt-1">{emailError}</p>}
                             </div>
                             
                             <button 

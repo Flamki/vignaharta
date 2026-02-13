@@ -12,6 +12,7 @@ const LogoSVG = () => (
 );
 
 export const Footer: React.FC = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -40,6 +41,12 @@ export const Footer: React.FC = () => {
     if (!/^\d{10}$/.test(formData.phone)) {
       setSubmitState('error');
       setErrorMessage('Please enter a valid 10-digit phone number.');
+      return;
+    }
+
+    if (formData.email.trim() && !emailRegex.test(formData.email.trim())) {
+      setSubmitState('error');
+      setErrorMessage('Please enter a valid email address.');
       return;
     }
 
@@ -145,6 +152,8 @@ export const Footer: React.FC = () => {
                     onChange={handleInputChange}
                     type="text"
                     required
+                    inputMode="numeric"
+                    pattern="\d{10}"
                     maxLength={10}
                     placeholder="Phone"
                     className="w-full bg-transparent border-b border-gray-700 py-3 text-sm text-white focus:border-brand-gold outline-none placeholder-gray-600 transition-colors"
