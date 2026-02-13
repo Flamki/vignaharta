@@ -91,23 +91,25 @@ export const Admin: React.FC = () => {
     };
   }, []);
 
+  const loadLeads = async () => {
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token) return;
+    setIsLeadsLoading(true);
+    setLeadsError('');
+    try {
+      const data = await getLeads(token);
+      setLeads(data);
+    } catch {
+      setLeadsError('Could not load leads. Please refresh.');
+    } finally {
+      setIsLeadsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadLeads = async () => {
-      if (activeTab !== 'leads') return;
-      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
-      if (!token) return;
-      setIsLeadsLoading(true);
-      setLeadsError('');
-      try {
-        const data = await getLeads(token);
-        setLeads(data);
-      } catch {
-        setLeadsError('Could not load leads. Please refresh.');
-      } finally {
-        setIsLeadsLoading(false);
-      }
-    };
-    loadLeads();
+    if (activeTab === 'leads') {
+      loadLeads();
+    }
   }, [activeTab]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -755,12 +757,20 @@ export const Admin: React.FC = () => {
                                     <h3 className="font-bold text-gray-800">Submitted Leads</h3>
                                     <p className="text-sm text-gray-500 mt-1">All enquiries, brochure requests, and price sheet requests.</p>
                                 </div>
-                                <button
-                                  onClick={downloadLeadsCsv}
-                                  className="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-black"
-                                >
-                                  <Download size={16} className="mr-2" /> Download CSV
-                                </button>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={loadLeads}
+                                    className="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50"
+                                  >
+                                    Refresh Leads
+                                  </button>
+                                  <button
+                                    onClick={downloadLeadsCsv}
+                                    className="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-black"
+                                  >
+                                    <Download size={16} className="mr-2" /> Download CSV
+                                  </button>
+                                </div>
                             </div>
 
                             {isLeadsLoading && <div className="text-sm text-gray-500">Loading leads...</div>}
@@ -768,7 +778,7 @@ export const Admin: React.FC = () => {
 
                             {!isLeadsLoading && !leadsError && (
                               <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                                  <table className="min-w-full text-sm">
+                                  <table className="min-w-full text-sm text-gray-900">
                                       <thead className="bg-gray-50 text-gray-600">
                                           <tr>
                                               <th className="text-left p-3">Date</th>
@@ -787,12 +797,12 @@ export const Admin: React.FC = () => {
                                           )}
                                           {leads.map((lead) => (
                                             <tr key={lead.id} className="border-t border-gray-100 align-top">
-                                              <td className="p-3 whitespace-nowrap">{new Date(lead.created_at).toLocaleString()}</td>
-                                              <td className="p-3">{lead.name}</td>
-                                              <td className="p-3 whitespace-nowrap">{lead.phone}</td>
-                                              <td className="p-3">{lead.email || '-'}</td>
-                                              <td className="p-3 capitalize whitespace-nowrap">{lead.source.replace('_', ' ')}</td>
-                                              <td className="p-3">{lead.notes || '-'}</td>
+                                              <td className="p-3 whitespace-nowrap text-gray-800">{new Date(lead.created_at).toLocaleString()}</td>
+                                              <td className="p-3 text-gray-900 font-medium">{lead.name}</td>
+                                              <td className="p-3 whitespace-nowrap text-gray-800">{lead.phone}</td>
+                                              <td className="p-3 text-gray-800">{lead.email || '-'}</td>
+                                              <td className="p-3 capitalize whitespace-nowrap text-gray-800">{lead.source.replace('_', ' ')}</td>
+                                              <td className="p-3 text-gray-700">{lead.notes || '-'}</td>
                                             </tr>
                                           ))}
                                       </tbody>
