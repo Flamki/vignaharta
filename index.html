@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Megaplex Prime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@200;300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            display: ['Cinzel', 'serif'],
+          },
+          extend: {
+            colors: {
+              brand: {
+                gold: '#D4AF37',       // Fallback Gold
+                dark: '#050505',       // Rich Black
+                charcoal: '#0a0a0a',   // Off-black
+                gray: '#1a1a1a',
+              }
+            },
+            animation: {
+              'slow-zoom': 'zoom 20s infinite alternate',
+              'float': 'float 6s ease-in-out infinite',
+              'shimmer': 'shimmer 3s linear infinite',
+            },
+            keyframes: {
+              zoom: {
+                '0%': { transform: 'scale(1)' },
+                '100%': { transform: 'scale(1.1)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+              shimmer: {
+                '0%': { backgroundPosition: '-1000px 0' },
+                '100%': { backgroundPosition: '1000px 0' },
+              }
+            },
+            backgroundImage: {
+              'gold-gradient': 'linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body { font-family: 'Manrope', sans-serif; background-color: #050505; color: #f3f4f6; }
+      
+      /* Metallic Gold Text */
+      .text-gradient-gold {
+        background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        background-size: 200% auto;
+        animation: shine 5s linear infinite;
+      }
+
+      @keyframes shine {
+        to {
+          background-position: 200% center;
+        }
+      }
+
+      /* Thin Gold Borders */
+      .border-gold-gradient {
+        border-image: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C) 1;
+      }
+
+      /* Smooth Reveal Animation Classes */
+      .reveal {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+      }
+      .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .reveal-left {
+        opacity: 0;
+        transform: translateX(-50px);
+        transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+      }
+      .reveal-left.active {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .reveal-right {
+        opacity: 0;
+        transform: translateX(50px);
+        transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+      }
+      .reveal-right.active {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      .reveal-zoom {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: all 1.2s cubic-bezier(0.5, 0, 0, 1);
+      }
+      .reveal-zoom.active {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .animate-fade-in-up {
+        animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transform: translate3d(0, 30px, 0);
+      }
+      
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translate3d(0, 30px, 0); }
+        to { opacity: 1; transform: translate3d(0, 0, 0); }
+      }
+
+      /* Utilities */
+      .delay-100 { transition-delay: 0.1s; }
+      .delay-200 { transition-delay: 0.2s; }
+      .delay-300 { transition-delay: 0.3s; }
+      .delay-400 { transition-delay: 0.4s; }
+      .delay-500 { transition-delay: 0.5s; }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #050505; }
+      ::-webkit-scrollbar-thumb { background: #333; }
+      ::-webkit-scrollbar-thumb:hover { background: #BF953F; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
