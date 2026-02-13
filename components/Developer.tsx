@@ -15,7 +15,7 @@ export const Developer: React.FC<DeveloperProps> = ({ content }) => {
       
       {/* Title Section */}
       <div className="text-center pt-16 md:pt-24 pb-12 md:pb-16">
-         <h2 className="text-4xl md:text-5xl font-display text-brand-dark mb-4 md:mb-6">About Developer</h2>
+         <h2 className="text-4xl md:text-5xl font-display text-brand-dark mb-4 md:mb-6">{content.title}</h2>
          <p className="max-w-4xl mx-auto text-gray-500 px-6 text-center leading-relaxed text-base md:text-lg font-light">
             {content.description}
          </p>
@@ -61,7 +61,7 @@ export const Developer: React.FC<DeveloperProps> = ({ content }) => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-70"></div>
                         
                         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-center transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                            <span className={`text-[10px] md:text-xs font-bold uppercase tracking-widest block mb-2 px-3 py-1 rounded-full inline-block ${update.status === 'Ready' || update.title === 'Completed' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'}`}>
+                            <span className={`text-[10px] md:text-xs font-bold uppercase tracking-widest block mb-2 px-3 py-1 rounded-full inline-block ${update.status === 'Ready' || update.status === 'Completed' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'}`}>
                                 {update.title}
                             </span>
                             <h4 className="text-xl md:text-2xl text-white font-display mb-4 md:mb-6">{update.description}</h4>

@@ -8,6 +8,10 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ content }) => {
+  const projectNameParts = content.projectName.trim().split(/\s+/);
+  const firstWord = projectNameParts[0] || '';
+  const remainingWords = projectNameParts.slice(1).join(' ');
+
   return (
     <div id="home" className="relative min-h-screen w-full overflow-hidden bg-brand-dark flex flex-col">
       {/* Dynamic Background */}
@@ -30,14 +34,20 @@ export const Hero: React.FC<HeroProps> = ({ content }) => {
             <div className="lg:col-span-7 xl:col-span-8">
                 <div className="inline-flex items-center space-x-2 border border-brand-gold/30 bg-black/30 backdrop-blur-md px-3 py-1 md:px-4 md:py-1.5 rounded-full mb-6 md:mb-8 animate-fade-in-up">
                     <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-brand-gold animate-pulse"></span>
-                    <span className="text-brand-gold text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">Pre-Launch Opportunity</span>
+                    <span className="text-brand-gold text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-bold">{content.title}</span>
                 </div>
 
                 <h1 className="text-3xl sm:text-5xl md:text-7xl xl:text-8xl font-display text-white mb-6 leading-[1.1] md:leading-[0.9] tracking-tight drop-shadow-2xl animate-fade-in-up animation-delay-100">
-                    {content.projectName.split(' ')[0]} <br/>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#BF953F] font-light italic">
-                        {content.projectName.split(' ')[1]}
-                    </span>
+                    {firstWord}
+                    {remainingWords && (
+                      <>
+                        {' '}
+                        <br/>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#BF953F] font-light italic">
+                          {remainingWords}
+                        </span>
+                      </>
+                    )}
                 </h1>
 
                 <div className="flex items-center text-gray-300 mb-8 md:mb-10 animate-fade-in-up animation-delay-200 group cursor-pointer" onClick={() => document.getElementById('connectivity')?.scrollIntoView({behavior:'smooth'})}>
