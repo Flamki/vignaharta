@@ -95,6 +95,11 @@ const initSqlite = async () => {
         lead.source,
         lead.notes || null
       );
+    },
+    listLeads: async () =>
+      db.all(
+        "SELECT id, name, phone, email, source, notes, created_at FROM leads ORDER BY id DESC LIMIT 500"
+      )
     }
   };
 };
@@ -192,6 +197,12 @@ const initPostgres = async () => {
         "INSERT INTO leads (name, phone, email, source, notes, created_at) VALUES ($1, $2, $3, $4, $5, NOW())",
         [lead.name, lead.phone, lead.email || null, lead.source, lead.notes || null]
       );
+    },
+    listLeads: async () => {
+      const result = await pool.query(
+        "SELECT id, name, phone, email, source, notes, created_at FROM leads ORDER BY id DESC LIMIT 500"
+      );
+      return result.rows;
     }
   };
 };

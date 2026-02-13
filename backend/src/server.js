@@ -157,6 +157,11 @@ app.post("/api/leads", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
+app.get("/api/leads", authRequired, async (req, res) => {
+  const leads = await db.listLeads();
+  res.json({ ok: true, leads });
+});
+
 app.listen(port, () => {
   console.log(`Backend running on http://localhost:${port}`);
 });

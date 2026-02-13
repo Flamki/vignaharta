@@ -76,3 +76,22 @@ export const submitLead = async (payload: LeadPayload): Promise<void> => {
     body: JSON.stringify(payload)
   });
 };
+
+export interface LeadRecord {
+  id: number;
+  name: string;
+  phone: string;
+  email: string | null;
+  source: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export const getLeads = async (token: string): Promise<LeadRecord[]> => {
+  const data = await requestJson<{ ok: boolean; leads: LeadRecord[] }>('/api/leads', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return data.leads;
+};

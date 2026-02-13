@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContent, Amenity, FAQItem, Stat, ConnectivityItem, ConstructionUpdateItem } from '../types';
-import { getContent, saveContent, loginAdmin, verifyToken } from '../services/contentService';
+import { getContent, saveContent, loginAdmin, verifyToken, getLeads, LeadRecord } from '../services/contentService';
 import { 
   Lock, LogOut, Save, Plus, Trash2, LayoutDashboard, 
-  Home, Info, Dumbbell, Map, Building2, HelpCircle, FileText
+  Home, Info, Dumbbell, Map, Building2, HelpCircle, FileText, Users, Download
 } from 'lucide-react';
 
 const ADMIN_TOKEN_KEY = 'adminToken';
@@ -22,15 +22,19 @@ export const Admin: React.FC = () => {
 
   // Content State
   const [content, setContent] = useState<AppContent | null>(null);
-  const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'amenities' | 'connectivity' | 'developer' | 'faq'>('hero');
+  const [activeTab, setActiveTab] = useState<'hero' | 'about' | 'amenities' | 'connectivity' | 'developer' | 'faq' | 'leads'>('hero');
   const [notification, setNotification] = useState('');
+  const [leads, setLeads] = useState<LeadRecord[]>([]);
+  const [isLeadsLoading, setIsLeadsLoading] = useState(false);
+  const [leadsError, setLeadsError] = useState('');
   const tabOptions: Array<{ id: typeof activeTab; label: string }> = [
     { id: 'hero', label: 'Hero Section' },
     { id: 'about', label: 'Project Overview' },
     { id: 'amenities', label: 'Amenities' },
     { id: 'connectivity', label: 'Connectivity' },
     { id: 'developer', label: 'Developer Info' },
-    { id: 'faq', label: 'FAQ Manager' }
+    { id: 'faq', label: 'FAQ Manager' },
+    { id: 'leads', label: 'Leads' }
   ];
   const adminTextFix = `
     .admin-panel input,
@@ -86,6 +90,25 @@ export const Admin: React.FC = () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const loadLeads = async () => {
+      if (activeTab !== 'leads') return;
+      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+      if (!token) return;
+      setIsLeadsLoading(true);
+      setLeadsError('');
+      try {
+        const data = await getLeads(token);
+        setLeads(data);
+      } catch {
+        setLeadsError('Could not load leads. Please refresh.');
+      } finally {
+        setIsLeadsLoading(false);
+      }
+    };
+    loadLeads();
+  }, [activeTab]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,6 +308,32 @@ export const Admin: React.FC = () => {
      });
   };
 
+  const downloadLeadsCsv = () => {
+    const headers = ['id', 'name', 'phone', 'email', 'source', 'notes', 'created_at'];
+    const escapeCsv = (value: unknown) => {
+      const text = String(value ?? '');
+      if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+      return text;
+    };
+    const rows = leads.map((lead) =>
+      [lead.id, lead.name, lead.phone, lead.email || '', lead.source, lead.notes || '', lead.created_at]
+        .map(escapeCsv)
+        .join(',')
+    );
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vignaharta_leads_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (isBootstrapping) {
     return <div className="flex h-screen items-center justify-center text-green-600">Loading Dashboard...</div>;
   }
@@ -391,6 +440,7 @@ export const Admin: React.FC = () => {
                     <NavItem id="connectivity" icon={Map} label="Connectivity" />
                     <NavItem id="developer" icon={Building2} label="Developer Info" />
                     <NavItem id="faq" icon={HelpCircle} label="FAQ Manager" />
+                    <NavItem id="leads" icon={Users} label="Leads" />
                 </nav>
             </div>
         </aside>
@@ -694,6 +744,61 @@ export const Admin: React.FC = () => {
                                     </div>
                                 ))}
                              </div>
+                        </div>
+                    )}
+
+                    {/* LEADS SECTION */}
+                    {activeTab === 'leads' && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                                <div>
+                                    <h3 className="font-bold text-gray-800">Submitted Leads</h3>
+                                    <p className="text-sm text-gray-500 mt-1">All enquiries, brochure requests, and price sheet requests.</p>
+                                </div>
+                                <button
+                                  onClick={downloadLeadsCsv}
+                                  className="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-black"
+                                >
+                                  <Download size={16} className="mr-2" /> Download CSV
+                                </button>
+                            </div>
+
+                            {isLeadsLoading && <div className="text-sm text-gray-500">Loading leads...</div>}
+                            {leadsError && <div className="text-sm text-red-600">{leadsError}</div>}
+
+                            {!isLeadsLoading && !leadsError && (
+                              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                                  <table className="min-w-full text-sm">
+                                      <thead className="bg-gray-50 text-gray-600">
+                                          <tr>
+                                              <th className="text-left p-3">Date</th>
+                                              <th className="text-left p-3">Name</th>
+                                              <th className="text-left p-3">Phone</th>
+                                              <th className="text-left p-3">Email</th>
+                                              <th className="text-left p-3">Source</th>
+                                              <th className="text-left p-3">Notes</th>
+                                          </tr>
+                                      </thead>
+                                      <tbody>
+                                          {leads.length === 0 && (
+                                            <tr>
+                                              <td className="p-4 text-gray-500" colSpan={6}>No leads yet.</td>
+                                            </tr>
+                                          )}
+                                          {leads.map((lead) => (
+                                            <tr key={lead.id} className="border-t border-gray-100 align-top">
+                                              <td className="p-3 whitespace-nowrap">{new Date(lead.created_at).toLocaleString()}</td>
+                                              <td className="p-3">{lead.name}</td>
+                                              <td className="p-3 whitespace-nowrap">{lead.phone}</td>
+                                              <td className="p-3">{lead.email || '-'}</td>
+                                              <td className="p-3 capitalize whitespace-nowrap">{lead.source.replace('_', ' ')}</td>
+                                              <td className="p-3">{lead.notes || '-'}</td>
+                                            </tr>
+                                          ))}
+                                      </tbody>
+                                  </table>
+                              </div>
+                            )}
                         </div>
                     )}
 
