@@ -129,7 +129,7 @@ export const Footer: React.FC = () => {
                 </li>
                 <li className="flex items-center">
                     <Phone className="text-brand-gold mr-4 flex-shrink-0" size={18} />
-                    <span>+91 98765 43210</span>
+                    <span>+91 90000 00000 (Demo)</span>
                 </li>
             </ul>
           </div>

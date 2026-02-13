@@ -9,7 +9,7 @@ const WhatsAppIcon = () => (
 );
 
 export const FloatingContact: React.FC = () => {
-  const phoneNumber = "919876543210";
+  const phoneNumber = "919000000000";
   const message = "Hi! I'm interested in Megaplex Prime. I would like to know more about the project.";
 
   return (
