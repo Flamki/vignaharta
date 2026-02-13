@@ -33,6 +33,18 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const handleScroll = (id: string) => {
     setIsMobileMenuOpen(false);
     const element = document.getElementById(id);
@@ -111,7 +123,7 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 bg-black z-40 transition-all duration-500 lg:hidden flex flex-col justify-center items-center space-y-8 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed top-0 left-0 w-screen h-screen bg-black/95 z-[60] transition-all duration-300 lg:hidden flex flex-col justify-center items-center space-y-8 overflow-y-auto ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
           <div className="absolute top-0 right-0 p-6">
             <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/50 hover:text-white">
                 <X size={32} />
