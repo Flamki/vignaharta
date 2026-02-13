@@ -24,11 +24,17 @@ const allowedOrigins = (process.env.FRONTEND_URLS || "")
   .filter(Boolean);
 
 const corsOrigins = [...new Set([...defaultOrigins, ...allowedOrigins])];
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (corsOrigins.includes(origin)) return true;
+  // Allow Vercel preview/prod domains for this assignment deployment model.
+  return origin.endsWith(".vercel.app");
+};
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || corsOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
