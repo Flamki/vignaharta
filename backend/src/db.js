@@ -6,12 +6,15 @@ import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import { defaultContent } from "./defaultContent.js";
 
+const isProduction = process.env.NODE_ENV === "production";
 const DEFAULT_EMAIL = process.env.ADMIN_EMAIL || "admin@gmail.com";
 const DEFAULT_PASSWORD = process.env.ADMIN_PASSWORD || "1234";
-const isProduction = process.env.NODE_ENV === "production";
 
 if (isProduction && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD)) {
-  throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set in production.");
+  console.warn(
+    "[startup-warning] ADMIN_EMAIL or ADMIN_PASSWORD is missing in production. " +
+      "Using fallback credentials. Set both env vars to secure the admin account."
+  );
 }
 
 const nowIso = () => new Date().toISOString();
