@@ -3,12 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContent, Amenity, FAQItem, Stat, ConnectivityItem, ConstructionUpdateItem } from '../types';
 import { getContent, saveContent, loginAdmin, verifyToken, getLeads, LeadRecord } from '../services/contentService';
+import { AdminLogin } from '../components/admin/AdminLogin';
+import { LeadsTab } from '../components/admin/LeadsTab';
 import { 
-  Lock, LogOut, Save, Plus, Trash2, LayoutDashboard, 
-  Home, Info, Dumbbell, Map, Building2, HelpCircle, FileText, Users, Download
+  LogOut, Save, Plus, Trash2, LayoutDashboard, 
+  Home, Info, Dumbbell, Map, Building2, HelpCircle, FileText, Users
 } from 'lucide-react';
 
 const ADMIN_TOKEN_KEY = 'adminToken';
+type ConnectivityTextField = 'title' | 'description' | 'mapUrl';
 
 export const Admin: React.FC = () => {
   const navigate = useNavigate();
@@ -76,6 +79,13 @@ export const Admin: React.FC = () => {
         if (mounted) {
           setContent(data);
           setIsAuthenticated(true);
+          setError('');
+        }
+      } catch {
+        sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+        if (mounted) {
+          setIsAuthenticated(false);
+          setError('Session is valid, but content service is unavailable. Please try again.');
         }
       } finally {
         if (mounted) {
@@ -123,7 +133,7 @@ export const Admin: React.FC = () => {
       setContent(data);
       setError('');
     } catch {
-      setError('Invalid credentials');
+      setError('Login failed or content service is unavailable.');
     }
   };
 
@@ -197,9 +207,8 @@ export const Admin: React.FC = () => {
       });
   }
 
-  const handleConnectivityChange = (field: keyof AppContent['connectivity'], value: string) => {
+  const handleConnectivityChange = (field: ConnectivityTextField, value: string) => {
      if(!content) return;
-     // @ts-ignore
      setContent({ ...content, connectivity: { ...content.connectivity, [field]: value } });
   };
 
@@ -342,52 +351,17 @@ export const Admin: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="admin-panel min-h-screen flex items-center justify-center bg-gray-50 relative overflow-hidden">
+      <>
         <style>{adminTextFix}</style>
-        <div className="absolute inset-0 z-0">
-             <div className="absolute inset-0 bg-gradient-to-br from-green-900 to-gray-900 opacity-90"></div>
-             <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover" alt="Background" />
-        </div>
-
-        <div className="bg-white p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-md relative z-10 backdrop-blur-sm bg-white/95 border border-white/20 mx-4">
-          <div className="flex justify-center mb-8">
-             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner">
-                <Lock size={32} />
-             </div>
-          </div>
-          <h2 className="text-3xl font-display text-center text-gray-800 mb-2">Admin Login</h2>
-          <p className="text-center text-gray-500 text-sm mb-8">Manage your real estate content securely</p>
-          
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Email Address</label>
-              <input
-                type="email"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Password</label>
-              <input
-                type="password"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-lg px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg text-center font-medium">{error}</div>}
-            
-            <button
-              type="submit"
-              className="w-full bg-green-700 text-white font-bold py-4 rounded-lg hover:bg-green-800 transition-transform active:scale-95 shadow-lg uppercase tracking-wider text-sm"
-            >
-              Access Dashboard
-            </button>
-          </form>
-        </div>
-      </div>
+        <AdminLogin
+          email={email}
+          password={password}
+          error={error}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onSubmit={handleLogin}
+        />
+      </>
     );
   }
 
@@ -749,65 +723,13 @@ export const Admin: React.FC = () => {
 
                     {/* LEADS SECTION */}
                     {activeTab === 'leads' && (
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                                <div>
-                                    <h3 className="font-bold text-gray-800">Submitted Leads</h3>
-                                    <p className="text-sm text-gray-500 mt-1">All enquiries, brochure requests, and price sheet requests.</p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={loadLeads}
-                                    className="inline-flex items-center justify-center bg-white text-gray-800 border border-gray-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50"
-                                  >
-                                    Refresh Leads
-                                  </button>
-                                  <button
-                                    onClick={downloadLeadsCsv}
-                                    className="inline-flex items-center justify-center bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-black"
-                                  >
-                                    <Download size={16} className="mr-2" /> Download CSV
-                                  </button>
-                                </div>
-                            </div>
-
-                            {isLeadsLoading && <div className="text-sm text-gray-500">Loading leads...</div>}
-                            {leadsError && <div className="text-sm text-red-600">{leadsError}</div>}
-
-                            {!isLeadsLoading && !leadsError && (
-                              <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                                  <table className="min-w-full text-sm text-gray-900">
-                                      <thead className="bg-gray-50 text-gray-600">
-                                          <tr>
-                                              <th className="text-left p-3">Date</th>
-                                              <th className="text-left p-3">Name</th>
-                                              <th className="text-left p-3">Phone</th>
-                                              <th className="text-left p-3">Email</th>
-                                              <th className="text-left p-3">Source</th>
-                                              <th className="text-left p-3">Notes</th>
-                                          </tr>
-                                      </thead>
-                                      <tbody>
-                                          {leads.length === 0 && (
-                                            <tr>
-                                              <td className="p-4 text-gray-500" colSpan={6}>No leads yet.</td>
-                                            </tr>
-                                          )}
-                                          {leads.map((lead) => (
-                                            <tr key={lead.id} className="border-t border-gray-100 align-top">
-                                              <td className="p-3 whitespace-nowrap text-gray-800">{new Date(lead.created_at).toLocaleString()}</td>
-                                              <td className="p-3 text-gray-900 font-medium">{lead.name}</td>
-                                              <td className="p-3 whitespace-nowrap text-gray-800">{lead.phone}</td>
-                                              <td className="p-3 text-gray-800">{lead.email || '-'}</td>
-                                              <td className="p-3 capitalize whitespace-nowrap text-gray-800">{lead.source.replace('_', ' ')}</td>
-                                              <td className="p-3 text-gray-700">{lead.notes || '-'}</td>
-                                            </tr>
-                                          ))}
-                                      </tbody>
-                                  </table>
-                              </div>
-                            )}
-                        </div>
+                      <LeadsTab
+                        leads={leads}
+                        isLeadsLoading={isLeadsLoading}
+                        leadsError={leadsError}
+                        onRefresh={loadLeads}
+                        onDownloadCsv={downloadLeadsCsv}
+                      />
                     )}
 
                 </div>

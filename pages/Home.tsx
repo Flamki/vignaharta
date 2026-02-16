@@ -13,17 +13,27 @@ import { Footer } from '../components/Footer';
 import { FloatingContact } from '../components/FloatingContact';
 import { AppContent } from '../types';
 import { getContent } from '../services/contentService';
+import { DEFAULT_CONTENT } from '../constants';
 
 export const Home: React.FC = () => {
   const [content, setContent] = useState<AppContent | null>(null);
+  const [loadWarning, setLoadWarning] = useState('');
 
   useEffect(() => {
     let mounted = true;
 
     const loadContent = async () => {
-      const data = await getContent();
-      if (mounted) {
-        setContent(data);
+      try {
+        const data = await getContent();
+        if (mounted) {
+          setContent(data);
+          setLoadWarning('');
+        }
+      } catch {
+        if (mounted) {
+          setContent(DEFAULT_CONTENT);
+          setLoadWarning('Live content is temporarily unavailable. Showing fallback content.');
+        }
       }
     };
 
@@ -40,6 +50,11 @@ export const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen font-sans text-gray-900 bg-white">
+      {loadWarning && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-amber-100 border-b border-amber-200 text-amber-900 text-xs md:text-sm px-4 py-2 text-center">
+          {loadWarning}
+        </div>
+      )}
       <Navbar />
       <Hero content={content.hero} />
       <About content={content.about} />

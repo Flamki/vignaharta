@@ -6,8 +6,13 @@ import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import { defaultContent } from "./defaultContent.js";
 
-const DEFAULT_EMAIL = "admin@gmail.com";
-const DEFAULT_PASSWORD = "1234";
+const DEFAULT_EMAIL = process.env.ADMIN_EMAIL || "admin@gmail.com";
+const DEFAULT_PASSWORD = process.env.ADMIN_PASSWORD || "1234";
+const isProduction = process.env.NODE_ENV === "production";
+
+if (isProduction && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD)) {
+  throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set in production.");
+}
 
 const nowIso = () => new Date().toISOString();
 

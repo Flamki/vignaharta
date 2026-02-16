@@ -10,8 +10,14 @@ dotenv.config();
 const app = express();
 const port = Number(process.env.PORT || 4000);
 const jwtSecret = process.env.JWT_SECRET || "development-secret";
+const isProduction = process.env.NODE_ENV === "production";
+const allowedLeadSources = new Set(["enquire_now", "price_sheet", "brochure_download"]);
 
-const defaultOrigins = [
+if (isProduction && (!process.env.JWT_SECRET || process.env.JWT_SECRET === "development-secret")) {
+  throw new Error("JWT_SECRET must be set in production.");
+}
+
+const defaultDevOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:5173",
@@ -23,12 +29,11 @@ const allowedOrigins = (process.env.FRONTEND_URLS || "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const corsOrigins = [...new Set([...defaultOrigins, ...allowedOrigins])];
+const corsOrigins = [...new Set([...(isProduction ? [] : defaultDevOrigins), ...allowedOrigins])];
 const isAllowedOrigin = (origin) => {
+  // Allow non-browser clients (curl, server-to-server).
   if (!origin) return true;
-  if (corsOrigins.includes(origin)) return true;
-  // Allow Vercel preview/prod domains for this assignment deployment model.
-  return origin.endsWith(".vercel.app");
+  return corsOrigins.includes(origin);
 };
 
 app.use(
@@ -146,11 +151,17 @@ app.post("/api/leads", async (req, res) => {
     return;
   }
 
+  const normalizedSource = String(source).trim();
+  if (!allowedLeadSources.has(normalizedSource)) {
+    res.status(400).json({ message: "Invalid lead source" });
+    return;
+  }
+
   await db.createLead({
     name: String(name).trim(),
     phone: String(phone).trim(),
     email: email ? String(email).trim() : "",
-    source: String(source).trim(),
+    source: normalizedSource,
     notes: notes ? String(notes).trim() : ""
   });
 
